@@ -9,33 +9,19 @@
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
     define(['jquery'], factory);
-  } else if (typeof module === 'object' && module.exports) {
+  } else if (typeof exports === 'object') {
     // Node/CommonJS
-    module.exports = function (root, jQuery) {
-      if (jQuery === undefined) {
-        // require('jQuery') returns a factory that requires window to
-        // build a jQuery instance, we normalize how we use modules
-        // that require this pattern but the window provided is a noop
-        // if it's defined (how jquery works)
-        if (typeof window !== 'undefined') {
-          jQuery = require('jquery');
-        }
-        else {
-          jQuery = require('jquery')(root);
-        }
-      }
-      factory(jQuery);
-      return jQuery;
-    };
+    factory(require('jquery'));
   } else {
     // Browser globals
     factory(jQuery);
   }
-} (function (jQuery) {
+}(function (jQuery) {
   // This is needed so we can catch the AMD loader configuration and use it
   // The inner file should be wrapped (by `banner.start.js`) in a function that
   // returns the AMD loader references.
-  var S2 =(function () {
+  var S2 =
+(function () {
   // Restore the Select2 AMD loader so it can be used
   // Needed mostly in the language files, where the loader is not inserted
   if (jQuery && jQuery.fn && jQuery.fn.select2 && jQuery.fn.select2.amd) {
@@ -3205,7 +3191,7 @@ S2.define('select2/data/select',[
       }
     }
 
-    if (data.id !== undefined) {
+    if (data.id) {
       option.value = data.id;
     }
 
@@ -3564,10 +3550,7 @@ S2.define('select2/data/tags',[
           }, true)
         );
 
-        var optionText = (option.text || '').toUpperCase();
-        var paramsTerm = (params.term || '').toUpperCase();
-
-        var checkText = optionText === paramsTerm;
+        var checkText = option.text === params.term;
 
         if (checkText || checkChildren) {
           if (child) {
@@ -3864,11 +3847,21 @@ S2.define('select2/dropdown',[
   Utils.Extend(Dropdown, Utils.Observable);
 
   Dropdown.prototype.render = function () {
-    var $dropdown = $(
-      '<span class="select2-dropdown">' +
-        '<span class="select2-results"></span>' +
-      '</span>'
-    );
+
+    var button ="";
+    if(this.options.options.button){
+        var buttonArr = this.options.options.button;
+        button +='<div class="select-btn-box">';
+        for (var i = 0; i < buttonArr.length; i++) {
+            var htmlOptions = buttonArr[i]['htmlOptions'] ? " "+buttonArr[i]['htmlOptions'] :"" ;
+            button +='<a'+htmlOptions+'>'+buttonArr[i]['label']+'</a>';
+        }
+        button +='</div>';
+    }
+    var tempStr ='<span class="select2-dropdown">' +
+                    '<span class="select2-results"></span>' + button +
+                 '</span>';
+    var $dropdown = $(tempStr);
 
     $dropdown.attr('dir', this.options.get('dir'));
 
@@ -4900,7 +4893,8 @@ S2.define('select2/defaults',[
         return selection.text;
       },
       theme: 'default',
-      width: 'resolve'
+      width: 'resolve',
+      button:false,
     };
   };
 
@@ -5740,3 +5734,4 @@ S2.define('jquery.select2',[
   // Return the Select2 instance for anyone who is importing it.
   return select2;
 }));
+
